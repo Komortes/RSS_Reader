@@ -10,19 +10,19 @@ namespace RSS_Reader.Models.Domain
         public int Id { get; set; }
 
         [Required]
-        [StringLength(200)]
+        [StringLength(250)]
         public string Name { get; set; }
 
         [Required]
         [Url]
-        [StringLength(500)]
+        [StringLength(2000)]
         public string Url { get; set; }
 
-        [StringLength(500)]
+        [StringLength(4000)]
         public string Description { get; set; }
 
         [Url]
-        [StringLength(500)]
+        [StringLength(2000)]
         public string ImageUrl { get; set; }
 
         public DateTime LastUpdated { get; set; }  

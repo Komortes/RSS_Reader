@@ -3,13 +3,25 @@
 @{
     ViewData["Title"] = "Home Page";
 }
-
+<div id="feed-container">
 @if (Model != null && Model.Any())
 {
-    foreach (var feed in Model)
-    {
-        @await Html.PartialAsync("_FeedCard", feed)
-    }
+    <div class="cards-grid">
+        @foreach (var feed in Model)
+        {
+            <article class="card" data-feed-id="@feed.Id">
+                <div class="card_selection_icon" style="display: none;"><i class="fas fa-check"></i></div>
+                <div class="temporary_text">
+                    <img src="@feed.ImageUrl" alt="@feed.Name" class="card_image" />
+                </div>
+                <div class="card_content">
+                    <span class="card_title">@feed.Name</span>
+                    <span class="card_subtitle">@feed.Url</span>
+                    <p class="card_description">@feed.Description</p>
+                </div>
+            </article>
+        }
+    </div>
 }
 else
 {
@@ -18,23 +30,219 @@ else
         <p class="mt-3">No feeds found. Please add a new one.</p>
     </div>
 }
-<button class="add-feed-button button" type="button" data-bs-toggle="modal" data-bs-target="#myModal">
-    <span class="button__text">Add Item</span>
-    <span class="button__icon"><svg class="svg" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><line x1="12" x2="12" y1="5" y2="19"></line><line x1="5" x2="19" y1="12" y2="12"></line></svg></span>
-</button>
+</div>
+<div class="button-container">
 
+    <button class="feed-button delete-feed-button button" type="button" id="deleteFeedButton">
+        <span class="button__text">Delete</span>
+    </button>
+
+    <div id="delete-actions" style="display: none;">
+        <button class="feed-button select-all-button button" type="button" id="selectAllButton">
+            <span class="button__text">Select All</span>
+        </button>
+
+        <button class="feed-button cancel-selection-button button" type="button" id="cancelSelectionButton">
+            <span class="button__text">Cancel</span>
+        </button>
+
+        <button class="feed-button confirm-delete-button button" type="button" id="confirmDeleteButton">
+            <span class="button__text">Confirm</span>
+        </button>
+    </div>
+
+    <button class="add-feed-button button" type="button" data-bs-toggle="modal" data-bs-target="#myModal">
+        <span class="button__text">Add Item</span>
+        <span class="button__icon"><svg class="svg" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><line x1="12" x2="12" y1="5" y2="19"></line><line x1="5" x2="19" y1="12" y2="12"></line></svg></span>
+    </button>
+</div>
 
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-body">
-                <form class="form">
+                <div id="error-message" class="alert alert-danger" style="display: none;"></div>
+                <form class="form" method="POST" action="@Url.Action("CreateFeed", "Home")">
                     <div class="title">Create<br><span>new RSS-Feed item</span></div>
-                    <input type="text" placeholder="Name" name="name" class="input">
-                    <input type="url" placeholder="URL" name="url" class="input">
-                    <button class="button-confirm">Accept</button>
+                    <input id="name-input" type="text" placeholder="Name" name="name" class="input">
+                    <input id="url-input" type="url" placeholder="URL" name="url" class="input">
+                    <button id="submit-button" type="button" class="button-confirm">Accept</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmationLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p id="deleteConfirmationMessage"></p>
+                <button id="confirmDeleteButton" type="button" class="button-confirm">Confirm</button>
+                <button id="cancelDeleteButton" type="button" class="button-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var nameInput = document.getElementById('name-input');
+        var urlInput = document.getElementById('url-input');
+        var errorMessageDiv = document.getElementById('error-message');
+        var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+        var selectedFeeds = new Set();
+
+        function updateFeeds() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '@Url.Action("GetFeeds", "Home")', true);
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    console.log("GetFeeds response: ", xhr.responseText); // Add this
+                    var feedContainer = document.getElementById('feed-container');
+                    feedContainer.innerHTML = xhr.responseText;
+                    attachCardEventListeners();
+                }
+            };
+            xhr.send();
+        }
+
+        function updateDeleteButtonVisibility() {
+            var deleteFeedButton = document.getElementById('deleteFeedButton');
+            var cards = document.querySelectorAll('.card');
+            if (cards.length === 0) {
+                deleteFeedButton.style.display = 'none';
+            } else {
+                deleteFeedButton.style.display = 'block';
+            }
+        }
+
+        document.getElementById('submit-button').addEventListener('click', function () {
+            var name = nameInput.value;
+            var url = urlInput.value;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '@Url.Action("CreateFeed", "Home")', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+            xhr.onload = function () {
+                var response = JSON.parse(xhr.responseText);
+                if (response.error) {
+                    errorMessageDiv.style.display = 'block';
+                    errorMessageDiv.textContent = response.error;
+                } else if (response.success) {
+                    myModal.hide();
+                    errorMessageDiv.style.display = 'none';
+                    errorMessageDiv.textContent = '';
+                    nameInput.value = '';
+                    urlInput.value = '';
+                    updateFeeds();
+                }
+            };
+
+            xhr.send('name=' + encodeURIComponent(name) + '&url=' + encodeURIComponent(url));
+        });
+
+        var deleteFeedButton = document.getElementById('deleteFeedButton');
+        var deleteActions = document.getElementById('delete-actions');
+        var selectAllButton = document.getElementById('selectAllButton');
+        var cancelSelectionButton = document.getElementById('cancelSelectionButton');
+        var confirmDeleteButton = document.getElementById('confirmDeleteButton');
+
+        deleteFeedButton.addEventListener('click', function () {
+            deleteFeedButton.style.display = 'none';
+            deleteActions.style.display = 'flex';
+            deleteActions.style.flexDirection = 'column';
+        });
+
+        selectAllButton.addEventListener('click', function () {
+            const allCards = document.querySelectorAll('.card');
+            const allCardsSelected = Array.from(allCards).every(card => card.querySelector('.card_selection_icon').style.display === 'block');
+
+            allCards.forEach(card => {
+                const selectionIcon = card.querySelector('.card_selection_icon');
+
+                if (selectionIcon.style.visibility === 'hidden' || !selectionIcon.style.visibility) {
+                    selectionIcon.style.visibility = 'visible';
+                    card.querySelector('.card_content').classList.add('card_content_selected');
+                } else {
+                    selectionIcon.style.visibility = 'hidden';
+                    card.querySelector('.card_content').classList.remove('card_content_selected');
+                }
+
+            });
+        });
+
+
+        cancelSelectionButton.addEventListener('click', function () {
+            deleteFeedButton.style.display = 'flex';
+            deleteActions.style.display = 'none';
+            document.querySelectorAll('.card').forEach(card => {
+                const selectionIcon = card.querySelector('.card_selection_icon');
+                selectionIcon.style.visibility = 'hidden';
+                card.querySelector('.card_content').classList.remove('card_content_selected');
+            });
+            selectedFeeds.clear();
+        });
+
+        confirmDeleteButton.addEventListener('click', function () {
+            const selectedFeedIds = [];
+            document.querySelectorAll('.card').forEach(card => {
+                const selectionIcon = card.querySelector('.card_selection_icon');
+                if (selectionIcon.style.visibility === 'visible') {
+                    const feedId = card.dataset.feedId;
+                    selectedFeedIds.push(feedId);
+                }
+            });
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '@Url.Action("DeleteFeeds", "Home")', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        updateFeeds();
+                    } else {
+                        console.error('Ошибка удаления: ' + response.error);
+                    }
+                } else {
+                    console.error('Ошибка удаления: ' + xhr.status);
+                }
+            };
+            xhr.send(JSON.stringify(selectedFeedIds));
+
+            deleteFeedButton.style.display = 'block';
+            deleteActions.style.display = 'none';
+            document.querySelectorAll('.card').forEach(card => {
+                const selectionIcon = card.querySelector('.card_selection_icon');
+                selectionIcon.style.visibility = 'hidden';
+                card.querySelector('.card_content').classList.remove('card_content_selected');
+            });
+        });
+
+        function attachCardEventListeners() {
+            document.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('click', function () {
+                    if (deleteActions.style.display === 'flex') {
+                        var selectionIcon = card.querySelector('.card_selection_icon');
+                        if (selectionIcon.style.visibility === 'hidden' || !selectionIcon.style.visibility) {
+                            selectionIcon.style.visibility = 'visible';
+                            selectedFeeds.add(card.dataset.feedId);
+                            card.querySelector('.card_content').classList.add('card_content_selected');
+                        } else {
+                            selectionIcon.style.visibility = 'hidden';
+                            selectedFeeds.delete(card.dataset.feedId);
+                            card.querySelector('.card_content').classList.remove('card_content_selected');
+                        }
+                    }
+                });
+            });
+        }
+
+
+        attachCardEventListeners();
+        updateDeleteButtonVisibility();
+    </script>
+}
+

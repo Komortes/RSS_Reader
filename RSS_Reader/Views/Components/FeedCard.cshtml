@@ -1,27 +1,28 @@
-﻿@model IList<RSS_Reader.Models.Domain.FeedModel> 
-@{ ViewData["Title"] = "Home Page"; }
+﻿@model List<RSS_Reader.Models.Domain.FeedModel>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@{
+    ViewData["Title"] = "Home Page";
+}
 
-<div class="text-center">
+
+<div class="cards-grid" id="feed-container">
     @foreach (var feed in Model)
     {
-        <div class="card">
-            <div class="header">
-                <div class="img-box">
-                    <img src="@feed.ImageUrl" alt="@feed.Name" />
-                </div>
-                <h2 class="title">@feed.Name</h2>
+        <article class="card" data-feed-id="@feed.Id">
+            <div class="card_selection_icon" style="display: none;"><i class="fas fa-check"></i></div>
+            <div class="temporary_text">
+                <img src="@feed.ImageUrl" alt="@feed.Name" class="card_image" />
             </div>
-
-            <div class="content">
-                <p>@feed.Description</p>
-
-                <a class="btn-link" href="@feed.Url">Read More...</a>
+            <div class="card_content">
+                <span class="card_title">@feed.Name</span>
+                <span class="card_subtitle">@feed.Url</span>
+                <p class="card_description">@feed.Description</p>
             </div>
-        </div>
+        </article>
     }
 </div>
+
+
+@section Scripts {
+    <script src="~/js/site.js"></script>
+}

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace RSS_Reader.Models.Domain
@@ -18,11 +19,13 @@ namespace RSS_Reader.Models.Domain
         public string Url { get; set; }
 
         [StringLength(500)]
-        public string Description { get; set; } 
+        public string Description { get; set; }
 
         [Url]
         [StringLength(500)]
-        public string ImageUrl { get; set; } 
+        public string ImageUrl { get; set; }
+
+        public DateTime LastUpdated { get; set; }  
 
         public virtual ICollection<ArticleModel> Articles { get; set; }
     }

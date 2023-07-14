@@ -4,16 +4,6 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
-
-<div class="feed-item">
-    <h2>Add a new feed</h2>
-    <a href="@Url.Action("Create", "Feeds")">Add new feed</a>
-</div>
-
 @if (Model != null && Model.Any())
 {
     foreach (var feed in Model)
@@ -23,5 +13,28 @@
 }
 else
 {
-    <p>No feeds found. Please add a new one.</p>
+    <div class="empty-feeds text-center">
+        <i class="fas fa-exclamation-triangle fa-3x"></i>
+        <p class="mt-3">No feeds found. Please add a new one.</p>
+    </div>
 }
+<button class="add-feed-button button" type="button" data-bs-toggle="modal" data-bs-target="#myModal">
+    <span class="button__text">Add Item</span>
+    <span class="button__icon"><svg class="svg" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><line x1="12" x2="12" y1="5" y2="19"></line><line x1="5" x2="19" y1="12" y2="12"></line></svg></span>
+</button>
+
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <form class="form">
+                    <div class="title">Create<br><span>new RSS-Feed item</span></div>
+                    <input type="text" placeholder="Name" name="name" class="input">
+                    <input type="url" placeholder="URL" name="url" class="input">
+                    <button class="button-confirm">Accept</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

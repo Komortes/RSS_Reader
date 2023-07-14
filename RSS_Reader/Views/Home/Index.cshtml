@@ -1,0 +1,27 @@
+﻿@model List<RSS_Reader.Models.Domain.FeedModel>
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+<div class="feed-item">
+    <h2>Add a new feed</h2>
+    <a href="@Url.Action("Create", "Feeds")">Add new feed</a>
+</div>
+
+@if (Model != null && Model.Any())
+{
+    foreach (var feed in Model)
+    {
+        @await Html.PartialAsync("_FeedCard", feed)
+    }
+}
+else
+{
+    <p>No feeds found. Please add a new one.</p>
+}

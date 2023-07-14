@@ -1,0 +1,41 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 18px;
+
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+nav {
+ 
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.link-1 {
+    transition: 0.3s ease;
+    background: #ffffff;
+    color: #ffffff;
+    font-size: 20px;
+    text-decoration: none;
+    border-top: 4px solid #ffffff;
+    border-bottom: 4px solid #ffffff;
+    margin: 0 10px;
+}
+
+    .link-1:hover {
+        border-top: 4px solid #80D0C7;
+        border-bottom: 4px solid #80D0C7;
+    }

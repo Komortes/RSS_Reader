@@ -1,7 +1,7 @@
 ﻿@model RSS_Reader.Models.Domain.FeedModel
 
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = @Model.Name;
 }
 
 <div class="container mt-4">
@@ -38,7 +38,7 @@
             </span>
         </button>
 
-        <input id="name-input" class="form-control element-width element-margin" type="text" placeholder="Name" name="name">
+        <input id="name-input" class="form-control element-width element-margin" type="text" placeholder="Title" name="name">
         <input type="date" id="start-date" class="form-control element-width element-margin">
         <input type="date" id="end-date" class="form-control element-width element-margin">
     </div>
@@ -66,6 +66,9 @@
     <script>
         $(document).ready(function () {
             $(".add-feed-button").click(function () {
+                $("#name-input").val("");
+                $("#start-date").val("");
+                $("#end-date").val("");
                 $.ajax({
                     url: '@Url.Action("RefreshArticles", "Home", new { feedId = @Model.Id })',
                     type: 'GET',
@@ -79,14 +82,17 @@
             });
 
             var delayTimer;
-            $("#name-input").on('input', function () {
+            $("#name-input, #start-date, #end-date").on('input change', function () {
                 clearTimeout(delayTimer);
-                var searchText = $(this).val();
+                var searchText = $("#name-input").val();
+                var startDate = $("#start-date").val();
+                var endDate = $("#end-date").val();
+
                 delayTimer = setTimeout(function () {
                     $.ajax({
-                        url: '@Url.Action("SearchArticles", "Home")',
+                        url: '@Url.Action("FilterAndSearchArticles", "Home")',
                         type: 'GET',
-                        data: { searchText: searchText, feedId: @Model.Id },
+                        data: { searchText: searchText, startDate: startDate, endDate: endDate, feedId: @Model.Id },
                         success: function (data) {
                             $('#articles').html(data);
                         },
@@ -96,23 +102,7 @@
                     });
                 }, 500);
             });
-
-            $("#start-date, #end-date").on('change', function () {
-                var startDate = $("#start-date").val();
-                var endDate = $("#end-date").val();
-                if (!startDate || !endDate) return;
-                $.ajax({
-                    url: '@Url.Action("FilterArticles", "Home")',
-                    type: 'GET',
-                    data: { startDate: startDate, endDate: endDate, feedId: @Model.Id },
-                    success: function (data) {
-                        $('#articles').html(data);
-                    },
-                    error: function () {
-                        alert('Error filtering articles');
-                    }
-                });
-            });
         });
     </script>
 }
+

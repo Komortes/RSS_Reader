@@ -39,19 +39,15 @@ nav {
 
 .link-1 {
     transition: 0.3s ease;
-    background: #ffffff;
+    background:none;
     color: #ffffff;
     font-size: 20px;
     text-decoration: none;
     border-top: 4px solid #ffffff;
     border-bottom: 4px solid #ffffff;
     margin: 0 10px;
+    
 }
-
-    .link-1:hover {
-        border-top: 4px solid #80D0C7;
-        border-bottom: 4px solid #80D0C7;
-    }
 
 .empty-feeds {
     position: absolute;

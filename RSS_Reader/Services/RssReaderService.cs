@@ -6,6 +6,7 @@ using RSS_Reader.Models.Domain;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
+using HtmlAgilityPack;
 
 public class RssReaderService
 {
@@ -36,7 +37,7 @@ public class RssReaderService
                     {
                         Title = item.Title.Text,
                         Link = item.Links[0].Uri.ToString(),
-                        Description = item.Summary != null ? item.Summary.Text : "No description available",
+                        Description = item.Summary != null ? StripHtmlTags(item.Summary.Text) : "No description available",
                         PublishDate = item.PublishDate.DateTime
                     };
 
@@ -63,5 +64,17 @@ public class RssReaderService
             var feed = SyndicationFeed.Load(reader);
             return feed;
         }
+    }
+
+    private static string StripHtmlTags(string html)
+    {
+        if (string.IsNullOrEmpty(html))
+        {
+            return html;
+        }
+
+        var htmlDoc = new HtmlDocument();
+        htmlDoc.LoadHtml(html);
+        return HtmlEntity.DeEntitize(htmlDoc.DocumentNode.InnerText);
     }
 }

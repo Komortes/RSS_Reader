@@ -171,44 +171,10 @@ namespace RSS_Reader.Controllers
         }
 
         [HttpGet]
-        public IActionResult SearchArticles(string searchText, int feedId)
-        {
-
-            var feed = _context.Feeds.Include(f => f.Articles).FirstOrDefault(f => f.Id == feedId);
-
-
-            if (feed == null)
-            {
-                return NotFound();
-            }
-
-            List<ArticleModel> filteredArticles = null;
-            if (feed.Articles != null)
-            {
-
-                filteredArticles = feed.Articles
-                    .Where(a => a.Title != null && a.Title.Contains(searchText ?? String.Empty)).ToList();
-            }
-
-
-            if (filteredArticles == null || filteredArticles.Count() == 0)
-            {
-                return NotFound("No articles found.");
-            }
-
-            else
-            {
-                return PartialView("~/Views/Components/ArticleCard.cshtml", filteredArticles);
-            }
-        }
-
-        [HttpGet]
-        public IActionResult FilterArticles(DateTime startDate, DateTime endDate, int feedId)
+        public IActionResult FilterAndSearchArticles(string searchText, DateTime? startDate, DateTime? endDate, int feedId)
         {
             var feed = _context.Feeds.Include(f => f.Articles).FirstOrDefault(f => f.Id == feedId);
 
-            _logger.LogInformation(startDate.Date.ToString());
-            _logger.LogInformation(endDate.Date.ToString());
             if (feed == null)
             {
                 return NotFound();
@@ -219,13 +185,30 @@ namespace RSS_Reader.Controllers
                 return NotFound();
             }
 
-            var filteredArticles = feed.Articles
-    .Where(a => a.PublishDate.Date >= startDate.Date && a.PublishDate.Date <= endDate.Date)
-    .ToList();
+            var filteredArticles = feed.Articles.AsQueryable();
 
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                filteredArticles = filteredArticles
+                    .Where(a => a.PublishDate.Date >= startDate.Value.Date && a.PublishDate.Date <= endDate.Value.Date);
+            }
 
-            return PartialView("~/Views/Components/ArticleCard.cshtml", filteredArticles);
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                filteredArticles = filteredArticles
+                    .Where(a => a.Title != null && a.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+            }
+
+            var finalResult = filteredArticles.ToList();
+
+            if (finalResult.Count == 0)
+            {
+                return NotFound("No articles found.");
+            }
+
+            return PartialView("~/Views/Components/ArticleCard.cshtml", finalResult);
         }
+
 
 
 

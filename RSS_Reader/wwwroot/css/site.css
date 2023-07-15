@@ -9,6 +9,7 @@ html {
         font-size: 18px;
     }
 }
+
 @media (max-width: 265px) {
     .cards-grid {
         justify-content: center;
@@ -110,6 +111,7 @@ h1.display-4 {
     display: flex;
     align-items: center;
 }
+
     .add-feed-button .button__text,
     .delete-feed-button .button__text,
     .select-all-button .button__text,
@@ -137,7 +139,7 @@ h1.display-4 {
         justify-content: center;
     }
 
-    .add-feed-button .svg{
+    .add-feed-button .svg {
         width: 20px;
         fill: var(--main-color);
     }
@@ -154,10 +156,11 @@ h1.display-4 {
             color: transparent;
         }
 
-        .add-feed-button:hover .button__icon{
+        .add-feed-button:hover .button__icon {
             width: 100%;
             right: 0;
         }
+
     .add-feed-button:active,
     .delete-feed-button:active,
     .select-all-button:active,
@@ -198,7 +201,7 @@ h1.display-4 {
     cursor: pointer;
 }
 
- 
+
 .form {
     --input-focus: #2d8cf0;
     --font-color: #323232;
@@ -292,6 +295,7 @@ h1.display-4 {
 .modal {
     background: rgba(0, 0, 0, 0.5);
 }
+
 .card {
     position: relative;
     width: 250px;
@@ -315,12 +319,12 @@ h1.display-4 {
     line-height: 1.2;
     margin-bottom: 6px;
 }
+
 .card_content {
     position: absolute;
     left: 0;
     bottom: 0;
     width: 100%;
-
     padding: 20px;
     background: #f2f2f2;
     border-top-left-radius: 20px;
@@ -329,7 +333,6 @@ h1.display-4 {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-
 }
 
     .card_content::before {
@@ -396,8 +399,8 @@ h1.display-4 {
 .cards-grid {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-around; 
-    align-items: flex-start; 
+    justify-content: space-around;
+    align-items: flex-start;
     gap: 15px;
     margin: 0 auto;
 }
@@ -406,11 +409,142 @@ h1.display-4 {
     background: #717676 !important;
 }
 
+.arcard {
+    --border-radius: 1rem;
+    --primary-color: #3c3852;
+    --secondary-color: #3c3852;
+    width: 400px;
+    height: 220px;
+    font-family: "Arial";
+    padding: 1rem;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    background: #f1f1f3;
+    box-shadow: 2px 8px 16px 0px rgb(0 0 0 / 3%);
+    position: relative;
+    margin: 5px 10px;
+}
+
+    .arcard > * + * {
+        margin-top: 0.9em;
+    }
+
+    .arcard .arcard__content {
+        color: var(--secondary-color);
+        font-size: 1rem;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        overflow: hidden;
+    }
+
+    .arcard .arcard__title {
+        padding: 0;
+        font-size: 1rem;
+        font-weight: bold;
+    }
+
+    .arcard .arcard__date {
+        color: #6e6b80;
+        font-size: 0.8rem;
+        position: absolute;
+        bottom: 1rem;
+        left: 1rem;
+    }
+
+    .arcard .arcard__arrow {
+        position: absolute;
+        background: var(--primary-color);
+        padding: 0.4rem;
+        border-top-left-radius: var(--border-radius);
+        border-bottom-right-radius: var(--border-radius);
+        bottom: 0;
+        right: 0;
+        transition: 0.2s;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .arcard svg {
+        transition: 0.2s;
+    }
+
+
+    .arcard:hover .arcard__title {
+        color: var(--primary-color);
+    }
+
+    .arcard:hover .arcard__arrow {
+        background: #111;
+    }
+
+        .arcard:hover .arcard__arrow svg {
+            transform: translateX(3px);
+        }
 
 
 
+.art_grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: center;
+    gap: 15px;
+    margin: 0 auto;
+}
 
 
+.search {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: center;
+}
 
+.search__input {
+    font-family: inherit;
+    font-size: inherit;
+    background-color: #f4f2f2;
+    border: none;
+    color: #646464;
+    padding: 0.7rem 1rem;
+    border-radius: 30px;
+    width: 12em;
+    transition: all ease-in-out .5s;
+    margin-right: -2rem;
+}
 
+    .search__input:hover, .search__input:focus {
+        box-shadow: 0 0 1em #00000013;
+    }
 
+    .search__input:focus {
+        outline: none;
+        background-color: #f0eeee;
+    }
+
+    .search__input::-webkit-input-placeholder {
+        font-weight: 100;
+        color: #ccc;
+    }
+
+    .search__input:focus + .search__button {
+        background-color: #f0eeee;
+    }
+
+.search__button {
+    border: none;
+    background-color: #f4f2f2;
+    margin-top: .1em;
+}
+
+    .search__button:hover {
+        cursor: pointer;
+    }
+
+.search__icon {
+    height: 1.3em;
+    width: 1.3em;
+    fill: #b4b4b4;
+}

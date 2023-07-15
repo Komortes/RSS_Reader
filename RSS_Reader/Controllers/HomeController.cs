@@ -8,6 +8,11 @@ using System.Xml;
 using RSS_Reader.Models.Domain;
 using System.Threading.Tasks;
 using System.Net.Http;
+using System.Linq;
+using System.Collections.Generic;
+using System;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Policy;
 
 namespace RSS_Reader.Controllers
 {
@@ -16,13 +21,16 @@ namespace RSS_Reader.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly RssDbContext _context;
         private readonly HttpClient _httpClient;
+        private readonly RssReaderService _rssReaderService;
 
-        public HomeController(ILogger<HomeController> logger, RssDbContext context, HttpClient httpClient)
+        public HomeController(ILogger<HomeController> logger, RssDbContext context, HttpClient httpClient, RssReaderService rssReaderService)
         {
             _logger = logger;
             _context = context;
             _httpClient = httpClient;
+            _rssReaderService = rssReaderService;
         }
+
 
         public IActionResult Index()
         {
@@ -35,6 +43,31 @@ namespace RSS_Reader.Controllers
         {
             var feeds = _context.Feeds.ToList();
             return PartialView("Index", feeds);
+        }
+
+        public async Task<IActionResult> FeedDetail(int id)
+        {
+            var feed = _context.Feeds.Include(f => f.Articles).FirstOrDefault(f => f.Id == id);
+
+            if (feed == null)
+            {
+                return NotFound();
+            }
+
+            if (feed.Articles == null || feed.Articles.Count() == 0)
+            {
+                try
+                {
+                    await _rssReaderService.UpdateFeedArticles(feed);
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception)
+                {
+                    return StatusCode(500, "There was an error loading the articles. Please try again.");
+                }
+            }
+
+            return View(feed);
         }
 
 
@@ -56,9 +89,9 @@ namespace RSS_Reader.Controllers
             {
                 using (var reader = XmlReader.Create(await _httpClient.GetStreamAsync(url)))
                 {
-                    var feed = SyndicationFeed.Load(reader);
+                    var syndicationFeed = SyndicationFeed.Load(reader);
 
-                    if (feed == null)
+                    if (syndicationFeed == null)
                     {
                         return Json(new { error = "Unable to parse the RSS Feed." });
                     }
@@ -67,9 +100,10 @@ namespace RSS_Reader.Controllers
                     {
                         Name = name,
                         Url = url,
-                        Description = feed.Description.Text,
-                        ImageUrl = feed.ImageUrl?.AbsoluteUri,
-                        LastUpdated = feed.LastUpdatedTime.DateTime
+                        Description = syndicationFeed.Description.Text,
+                        ImageUrl = syndicationFeed.ImageUrl?.AbsoluteUri,
+                        LastUpdated = syndicationFeed.LastUpdatedTime.DateTime,
+                        Articles = new List<ArticleModel>()
                     };
 
                     _context.Feeds.Add(newFeed);
@@ -108,6 +142,94 @@ namespace RSS_Reader.Controllers
                 return Json(new { error = "There was an error deleting the feeds. Please try again." });
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> RefreshArticles(int feedId)
+        {
+            var feed = _context.Feeds.Find(feedId);
+
+            if (feed == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                var oldArticles = await _context.Articles.Where(a => a.RssFeedId == feedId).ToListAsync();
+                _context.Articles.RemoveRange(oldArticles);
+                await _context.SaveChangesAsync();
+                await _rssReaderService.UpdateFeedArticles(feed);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "There was an error refreshing the articles. Please try again.");
+            }
+
+
+            return PartialView("~/Views/Components/ArticleCard.cshtml", feed.Articles);
+        }
+
+        [HttpGet]
+        public IActionResult SearchArticles(string searchText, int feedId)
+        {
+
+            var feed = _context.Feeds.Include(f => f.Articles).FirstOrDefault(f => f.Id == feedId);
+
+
+            if (feed == null)
+            {
+                return NotFound();
+            }
+
+            List<ArticleModel> filteredArticles = null;
+            if (feed.Articles != null)
+            {
+
+                filteredArticles = feed.Articles
+                    .Where(a => a.Title != null && a.Title.Contains(searchText ?? String.Empty)).ToList();
+            }
+
+
+            if (filteredArticles == null || filteredArticles.Count() == 0)
+            {
+                return NotFound("No articles found.");
+            }
+
+            else
+            {
+                return PartialView("~/Views/Components/ArticleCard.cshtml", filteredArticles);
+            }
+        }
+
+        [HttpGet]
+        public IActionResult FilterArticles(DateTime startDate, DateTime endDate, int feedId)
+        {
+            var feed = _context.Feeds.Include(f => f.Articles).FirstOrDefault(f => f.Id == feedId);
+
+            _logger.LogInformation(startDate.Date.ToString());
+            _logger.LogInformation(endDate.Date.ToString());
+            if (feed == null)
+            {
+                return NotFound();
+            }
+
+            if (feed.Articles == null)
+            {
+                return NotFound();
+            }
+
+            var filteredArticles = feed.Articles
+    .Where(a => a.PublishDate.Date >= startDate.Date && a.PublishDate.Date <= endDate.Date)
+    .ToList();
+
+
+            return PartialView("~/Views/Components/ArticleCard.cshtml", filteredArticles);
+        }
+
+
+
+
 
     }
 }

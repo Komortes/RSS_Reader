@@ -9,17 +9,7 @@
     <div class="cards-grid">
         @foreach (var feed in Model)
         {
-            <article class="card" data-feed-id="@feed.Id">
-                <div class="card_selection_icon" style="display: none;"><i class="fas fa-check"></i></div>
-                <div class="temporary_text">
-                    <img src="@feed.ImageUrl" alt="@feed.Name" class="card_image" />
-                </div>
-                <div class="card_content">
-                    <span class="card_title">@feed.Name</span>
-                    <span class="card_subtitle">@feed.Url</span>
-                    <p class="card_description">@feed.Description</p>
-                </div>
-            </article>
+                @await Html.PartialAsync("~/Views/Components/FeedCard.cshtml", feed)
         }
     </div>
 }
@@ -98,7 +88,7 @@ else
             xhr.open('GET', '@Url.Action("GetFeeds", "Home")', true);
             xhr.onload = function () {
                 if (xhr.status === 200) {
-                    console.log("GetFeeds response: ", xhr.responseText); // Add this
+                    console.log("GetFeeds response: ", xhr.responseText); 
                     var feedContainer = document.getElementById('feed-container');
                     feedContainer.innerHTML = xhr.responseText;
                     attachCardEventListeners();
@@ -223,8 +213,11 @@ else
 
         function attachCardEventListeners() {
             document.querySelectorAll('.card').forEach(card => {
-                card.addEventListener('click', function () {
-                    if (deleteActions.style.display === 'flex') {
+                card.addEventListener('click', function (event) {
+                    if (deleteActions.style.display !== 'flex') {
+                        var feedId = card.dataset.feedId;
+                        window.location.href = '@Url.Action("FeedDetail", "Home")' + '?id=' + feedId;
+                    } else {
                         var selectionIcon = card.querySelector('.card_selection_icon');
                         if (selectionIcon.style.visibility === 'hidden' || !selectionIcon.style.visibility) {
                             selectionIcon.style.visibility = 'visible';
@@ -239,6 +232,7 @@ else
                 });
             });
         }
+
 
 
         attachCardEventListeners();

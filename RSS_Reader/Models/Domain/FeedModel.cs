@@ -28,5 +28,10 @@ namespace RSS_Reader.Models.Domain
         public DateTime LastUpdated { get; set; }  
 
         public virtual ICollection<ArticleModel> Articles { get; set; }
+
+        public FeedModel()
+        {
+            Articles = new List<ArticleModel>();
+        }
     }
 }

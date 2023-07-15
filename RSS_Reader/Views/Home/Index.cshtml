@@ -63,17 +63,6 @@ else
     </div>
 </div>
 
-<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmationLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-body">
-                <p id="deleteConfirmationMessage"></p>
-                <button id="confirmDeleteButton" type="button" class="button-confirm">Confirm</button>
-                <button id="cancelDeleteButton" type="button" class="button-cancel">Cancel</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 @section Scripts {
     <script>
@@ -81,6 +70,7 @@ else
         var urlInput = document.getElementById('url-input');
         var errorMessageDiv = document.getElementById('error-message');
         var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+
         var selectedFeeds = new Set();
 
         function updateFeeds() {
@@ -88,7 +78,6 @@ else
             xhr.open('GET', '@Url.Action("GetFeeds", "Home")', true);
             xhr.onload = function () {
                 if (xhr.status === 200) {
-                    console.log("GetFeeds response: ", xhr.responseText); 
                     var feedContainer = document.getElementById('feed-container');
                     feedContainer.innerHTML = xhr.responseText;
                     attachCardEventListeners();
@@ -107,30 +96,33 @@ else
             }
         }
 
-        document.getElementById('submit-button').addEventListener('click', function () {
-            var name = nameInput.value;
-            var url = urlInput.value;
+        document.getElementById('myModal').addEventListener('shown.bs.modal', function () {
+            document.getElementById('submit-button').addEventListener('click', function () {
+                console.log("Submit button clicked");
+                var name = nameInput.value;
+                var url = urlInput.value;
 
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '@Url.Action("CreateFeed", "Home")', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '@Url.Action("CreateFeed", "Home")', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
-            xhr.onload = function () {
-                var response = JSON.parse(xhr.responseText);
-                if (response.error) {
-                    errorMessageDiv.style.display = 'block';
-                    errorMessageDiv.textContent = response.error;
-                } else if (response.success) {
-                    myModal.hide();
-                    errorMessageDiv.style.display = 'none';
-                    errorMessageDiv.textContent = '';
-                    nameInput.value = '';
-                    urlInput.value = '';
-                    updateFeeds();
-                }
-            };
+                xhr.onload = function () {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.error) {
+                        errorMessageDiv.style.display = 'block';
+                        errorMessageDiv.textContent = response.error;
+                    } else if (response.success) {
+                        myModal.hide();
+                        errorMessageDiv.style.display = 'none';
+                        errorMessageDiv.textContent = '';
+                        nameInput.value = '';
+                        urlInput.value = '';
+                        location.reload();
+                    }
+                };
 
-            xhr.send('name=' + encodeURIComponent(name) + '&url=' + encodeURIComponent(url));
+                xhr.send('name=' + encodeURIComponent(name) + '&url=' + encodeURIComponent(url));
+            });
         });
 
         var deleteFeedButton = document.getElementById('deleteFeedButton');
@@ -194,10 +186,10 @@ else
                     if (response.success) {
                         updateFeeds();
                     } else {
-                        console.error('Ошибка удаления: ' + response.error);
+                        console.error('Error: ' + response.error);
                     }
                 } else {
-                    console.error('Ошибка удаления: ' + xhr.status);
+                    console.error('Error: ' + xhr.status);
                 }
             };
             xhr.send(JSON.stringify(selectedFeedIds));

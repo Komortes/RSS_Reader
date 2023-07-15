@@ -8,10 +8,7 @@ namespace RSS_Reader.Data
         public DbSet<FeedModel> Feeds { get; set; }
         public DbSet<ArticleModel> Articles { get; set; }
 
-        public RssDbContext(DbContextOptions<RssDbContext> options) : base(options)
-        {
-
-        }
+        public RssDbContext(DbContextOptions<RssDbContext> options) : base(options){}
 
     }
 }
